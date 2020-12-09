@@ -12,25 +12,69 @@ namespace Survey_System.Controllers
     {
         public ActionResult Index()
         {
-            var Model = db.Person.ToList();
-            return View(Model);
+            if (Session["Admin"] == null)
+            {
+                return RedirectToAction("SignIn", "Login");
+            }
+            else
+            {
+                var Model = db.Person.ToList();
+                return View(Model);
+            }
         }
 
-        public ActionResult Create(Person person)
+        public ActionResult Create(Person person, string Answer)
         {
             if (person.NameSurname != null)
             {
                 person.CreateDate = DateTime.Now;
                 person.CreateBy = NameSurname;
+                //  if (Answer == Constants.AnswerType.Yes)
+                //  {
+                //      person.IsAdmin = true;
+                //  }
+                //  else
+                //  {
+                //      person.IsAdmin = false;
+                //  }
+
+                person.IsAdmin = (Answer == Constants.AnswerType.Yes);
+
+                var isRecordExist = db.Person.Where(p => p.Code == person.Code).Any();
+                if (isRecordExist)
+                {
+                    TempData["HataMesaji"] = $"{person.Code} değeri veri tabanında mevcut!";
+                    ViewBag.NewCode = GetNewCode();
+                    return View();
+                }
+
+
                 db.Person.Add(person);
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
             else
             {
+                ViewBag.NewCode = GetNewCode();
                 return View();
             }
 
+        }
+
+        private string GetNewCode()
+        {
+            var maxId = db.Person.OrderByDescending(p => p.Id).FirstOrDefault()?.Id;
+            if (!maxId.HasValue)
+            {
+                maxId = 0;
+            }
+
+            maxId++;
+
+            var codeAsString = $"{maxId:d5}";
+
+            return codeAsString;
+            //01001
         }
 
         public ActionResult Edit(int? Id)
@@ -43,13 +87,21 @@ namespace Survey_System.Controllers
             return View(model);
         }
         [HttpPost]
-        public ActionResult Edit(Person person)
+        public ActionResult Edit(Person person, string Answer)
         {
             db.Entry(person).State = System.Data.Entity.EntityState.Modified;
             db.Entry(person).Property(e => e.CreateBy).IsModified = false;
             db.Entry(person).Property(e => e.CreateDate).IsModified = false;
             person.ModifyBy = NameSurname;
             person.ModifyDate = DateTime.Now;
+            if (Answer == Constants.AnswerType.Yes)
+            {
+                person.IsAdmin = true;
+            }
+            else
+            {
+                person.IsAdmin = false;
+            }
             db.SaveChanges();
             return RedirectToAction("Index");
         }

@@ -1,6 +1,9 @@
 ﻿
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var newCode = ViewBag.NewCode ?? "00000";
+
+    var hataMesaji = TempData["HataMesaji"] as string;
 }
 
 <div class="card">
@@ -8,17 +11,31 @@
         <div class="card-title">Kişi Ekleme</div>
         <hr>
         <form action="/Person/Create">
+            @if (!string.IsNullOrWhiteSpace(hataMesaji))
+            {
+                <div class="form-group modal-content border-warning">
+                    @hataMesaji
+                </div>
+            }
             <div class="form-group">
                 <label for="input-1">Ad Soyad</label>
                 <input type="text" class="form-control" name="NameSurname" id="input-1" placeholder="Ad Soyad" maxlength="50" required>
             </div>
             <div class="form-group">
                 <label for="input-2">Code</label>
-                <input type="text" class="form-control" name="Code" id="input-2" placeholder="Code" maxlength="10" required>
+                <input type="text" class="form-control" name="Code" readonly id="input-2" placeholder="Code" maxlength="10" required value="@newCode">
             </div>
             <div class="form-group">
                 <label for="input-3">Şifre</label>
                 <input type="password" class="form-control" name="Password" id="input-3" placeholder="Şifre" maxlength="20" required>
+            </div>
+            <label for="input-3">Admin mi?</label>
+            <div class="icheck-material-primary ichech-inline">
+                <input type="radio" id="1" name="Answer" value="@Survey_System.Constants.AnswerType.Yes" />
+                <label for="1">@Survey_System.Constants.AnswerType.Yes</label>
+
+                <input type="radio" id="2" name="Answer" value="@Survey_System.Constants.AnswerType.No" checked />
+                <label for="2">@Survey_System.Constants.AnswerType.No</label>
             </div>
 
             <div class="form-group">
